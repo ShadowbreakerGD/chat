@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+ 
+<head>
+    <!-- Meta tags -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>💬</text></svg>">
+ 
+    <!-- Favicon and title -->
+    <title>Jeffalo Chat</title>
+ 
+    <!-- Halfmoon CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/css/halfmoon-variables.min.css" rel="stylesheet" />
+    <!--
+    Or,
+    Use the following (no variables, supports IE11):
+    <link href="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/css/halfmoon.min.css" rel="stylesheet" />
+    Learn more: https://www.gethalfmoon.com/docs/customize/#notes-on-browser-compatibility
+  -->
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <style>
+        :root {
+            --primary-color: var(--indigo-color);
+            /* Before: var(--blue-color) */
+            --primary-color-light: var(--indigo-color-light);
+            /* Before: var(--blue-color-light) */
+            --primary-color-very-light: var(--indigo-color-very-light);
+            /* Before: var(--blue-color-very-light) */
+            --primary-color-dark: var(--indigo-color-dark);
+            /* Before: var(--blue-color-dark) */
+            --primary-color-very-dark: var(--indigo-color-very-dark);
+            /* Before: var(--blue-color-very-dark) */
+            --primary-box-shadow-color: var(--indigo-box-shadow-color);
+            /* Before: var(--blue-box-shadow-color) */
+            --primary-box-shadow-color-darker: var(--indigo-box-shadow-color-darker);
+            /* Before: var(--blue-box-shadow-color-darker) */
+            --text-color-on-primary-color-bg: var(--text-color-on-indigo-color-bg);
+        }
+ 
+        .sidebar-link {
+            cursor: pointer;
+        }
+ 
+        .ping {
+            background-color: #6563ff2e !important;
+        }
+ 
+        .system {
+            font-style: italic;
+        }
+    </style>
+</head>
+ 
+<body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true" data-sidebar-shortcut-enabled="true" data-set-preferred-mode-onload="true">
+    <!-- Modals go here -->
+    <!-- Reference: https://www.gethalfmoon.com/docs/modal -->
+    <div class="modal" id="login" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <!--                 <a href="#" class="btn close" role="button" aria-label="Close">
+                    <span class="iconify" data-icon="uil:times" data-inline="false"></span></a> -->
+                <h5 class="modal-title">Join the chat</h5>
+                <form id='join'>
+                    <div class="form-group">
+                        <label for="username" class="required">Nickname</label>
+                        <input type="text" id="username" class="form-control" placeholder="Username" required="required" autocomplete="off" autofocus>
+                    </div>
+                    <div class="form-group" style='display: none;' id='adminGroup'>
+                        <label for="username">Admin</label>
+                        <input type="password" id="adminPassword" class="form-control" placeholder="Admin password">
+                    </div>
+                    <!--
+              <div class="form-group">
+                <label for="password" class="required">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Password" required="required">
+              </div>
+            -->
+                    <input class="btn btn-primary btn-block" type="submit" value="Join">
+                </form>
+                <!-- 
+            <div class="text-right mt-10">
+              <a href="#modal-2" class="hyperlink">Forgot password?</a>
+            </div>
+             -->
+            </div>
+        </div>
+    </div>
+    <!-- Page wrapper start -->
+    <div class="page-wrapper with-navbar with-sidebar with-transitions" data-sidebar-type="overlayed-sm-and-down">
+        <div class="sidebar-overlay" onclick="halfmoon.toggleSidebar()"></div>
+ 
+        <!-- Sticky alerts (toasts), empty container -->
+        <!-- Reference: https://www.gethalfmoon.com/docs/sticky-alerts-toasts -->
+        <div class="sticky-alerts"></div>
+ 
+        <!-- Navbar start -->
+        <nav class="navbar">
+            <!-- Reference: https://www.gethalfmoon.com/docs/navbar -->
+            <div class="navbar-content">
+                <button class="btn" type="button" onclick="halfmoon.toggleSidebar()"><span class="iconify" data-icon="uil:bars" data-inline="false"></span></button>
+            </div>
+            <a href="#" class="navbar-brand mr-5 mr-sm-10"">
+                <span class=" iconify mr-10" data-icon="uil:comment-alt-lines" data-inline="false"></span>Jeffalo Chat
+            </a>
+            <span class=" badge">Beta</span>
+        </nav>
+        <!-- Navbar end -->
+ 
+        <!-- Sidebar start -->
+        <div class="sidebar">
+            <!-- Reference: https://www.gethalfmoon.com/docs/sidebar -->
+            <div class="sidebar-menu" id='channels'>
+                <!-- Sidebar brand -->
+                <a href="#" class="sidebar-brand">
+                    Jeffalo Chat
+                </a>
+                <!-- Sidebar content with the search box -->
+                <!--                 <div class="sidebar-content">
+                    <input type="text" class="form-control" placeholder="Search">
+                    <div class="mt-10 font-size-12">
+                        Press <kbd>/</kbd> to focus
+                    </div>
+                </div> -->
+                <!-- Sidebar links and titles -->
+                <h5 class="sidebar-title mt-20">Channels</h5>
+                <div class="sidebar-divider"></div>
+                <span v-on:click="setChannel(channel)" class='sidebar-link' :class="{ 'active' : currentChannel == channel }" v-for='channel in channels'>#{{ channel }}</span>
+                <h5 class="sidebar-title mt-20">Online</h5>
+                <div class="sidebar-divider"></div>
+                <!--                 <div class="sidebar-link">
+                    {{ users.map(e => e.name).join(", ") }}
+                </div> -->
+                <a class="sidebar-link" v-for='user in users' href='#' v-on:click='mention(user.name)'>
+                    <span v-if='user.admin'>
+                        <span class="iconify" data-icon="uil:shield-check" data-inline="false"></span>
+                    </span>
+                    {{ user.name }}
+                </a>
+                <h5 class="sidebar-title mt-20">Settings</h5>
+                <div class="sidebar-divider"></div>
+                <a class="sidebar-link" href='#' onclick="halfmoon.toggleDarkMode()">
+                    <span class="iconify" data-icon="uil:swatchbook" data-inline="false"></span> Toggle theme
+                </a>
+                <!--                 <a class="sidebar-link" href='#' onclick="toggleAudio()">
+                    <span class="iconify" data-icon="uil:headphones" data-inline="false"></span> Turn on message sounds
+                </a> -->
+                <!--                 <br />
+                <h5 class="sidebar-title">Meta</h5>
+                <div class="sidebar-divider"></div>
+                <a href="#" class="sidebar-link">Settings</a>
+                <a href="#" class="sidebar-link">Profile</a>
+                <a href="#" class="sidebar-link">Log out</a> -->
+            </div>
+        </div>
+        <!-- Sidebar end -->
+ 
+        <!-- Content wrapper start -->
+        <div class="content-wrapper">
+            <!--
+        Add your page's main content here
+        Examples:
+        1. https://www.gethalfmoon.com/docs/content-and-cards/#building-a-page
+        2. https://www.gethalfmoon.com/docs/grid-system/#building-a-dashboard
+      -->
+ 
+            <div class="content-wrapper">
+                <!-- Container-fluid -->
+                <div class="container-fluid">
+                    <!-- First comes a content container -->
+                    <div id="messages">
+                        <div class="content">
+                            <h1 class="content-title font-size-22">
+                                <!-- font-size-22 = font-size: 2.2rem (22px) -->
+                                #{{ channel }}
+                            </h1>
+                        </div>
+                        <!-- Next comes a card -->
+                        <div class="card" style="margin-bottom: 75px;">
+                            <table class="table table-striped">
+                                <tbody>
+                                    <span v-if='splash'><span class="iconify" data-icon="uil:file-blank" data-inline="false"></span> no messages yet.
+                                        <i>{{splashQuotes[Math.floor(Math.random() * splashQuotes.length)]}}</i></span>
+                                    <tr v-for="message in messages" v-if='message.channel == channel || message.channel == "all"' :class="{ 'system' :  message.sender == 'system' }">
+                                        <td style="overflow-wrap: anywhere;"><a href='#' class="text-primary" v-on:click='mention(message.sender)'>{{ message.sender }}</a>:
+                                            <span :class="{ 'ping' :  message.ping }" v-html='message.content'></span>
+                                            <span class="text-muted float-right"><i>{{ new Date(message.time).toLocaleTimeString() }}</i></span>
+                                            <div v-if='message.hasImage' class="mt-5">
+                                                <img v-for='image in message.images' v-bind:src="image" style="display: block; width: 40%;">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+ 
+                    <!-- Then another card -->
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="card position-fixed bottom-0 mb-0 w-three-quarter shadow">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Message" id='message' autocomplete="off" tabindex="1">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" id='send'>Send</button>
+                                </div>
+                            </div>
+                            <!--                         <button class="btn btn-primary" type="button" onclick='toast()'>Show toast</button> -->
+ 
+                        </div>
+                    </div>
+ 
+                    <!-- Finally ending with a content container (without title) -->
+                    <div class="content">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Content wrapper end -->
+ 
+    </div>
+    <!-- Page wrapper end -->
+ 
+    <!-- Halfmoon JS -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/js/halfmoon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+ 
+</html>
